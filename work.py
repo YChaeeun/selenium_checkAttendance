@@ -102,3 +102,44 @@ s_late = late - attendance  # 지각자 학번
 s_absent = set(student_list) - (attendance | s_late)  # 결석자 학번
 
 # -------------------------------------------------- #
+
+# -------------------------------------------------- #
+# 5. 결과 게시물 작성
+driver.execute_script("window.history.go(-1)")
+driver.implicitly_wait(3)
+driver.find_element_by_css_selector(".site_button").click()
+
+### 제목 입력  ex. 3/19(목)
+now = datetime.now()
+
+name_of_day = weekday[now.weekday()]
+site.title_complete = f"{now.month}/{now.day}({name_of_day})" 
+driver.find_element_by_css_selector(".txttype02").send_keys(site.title_complete)
+
+### 내용 입력 ex. 지각 - 2222 가다나 \n결석 - 해당자 없음
+late_string = ""
+absent_string = ""
+
+for s_id in s_late :
+    student = f"{s_id} {student_list[s_id]}"
+    late_string += student
+
+for s_id in s_absent :
+    student = f"{s_id} {student_list[s_id]}"
+    absent_string += student
+
+if not late_string :
+    late_string = "해당자 없음"
+if not absent_string :
+    absent_string = "해당자 없음"
+
+site.content_complete = (late_string, absent_string)
+
+frame = driver.find_element_by_tag_name("iframe")
+driver.switch_to.frame(frame)
+driver.find_element_by_css_selector("#tinymce").send_keys(site.content_complete)
+
+### 작성완료!
+#driver.find_element_by_css_selector(".site_button_reverse").click()
+
+# -------------------------------------------------- #
