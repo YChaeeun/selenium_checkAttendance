@@ -1,5 +1,6 @@
 import userInfo as u
 import siteInfo as s
+from student import student_list
 
 from selenium import webdriver as wd
 
@@ -82,4 +83,22 @@ for i in range(20) :
     else :
         driver.refresh()
         time.sleep(60)
+# -------------------------------------------------- #
+
+# -------------------------------------------------- #
+# 3-2. 데이터 정제
+attendance = set()
+late = set()
+
+### 댓글 중 학번만 추출
+for comment in comment_list :
+    attendance.add(comment.text[5:13])
+
+for comment in comment_list_late :
+    late.add(comment.text[5:13])
+
+### 지각자, 결석자
+s_late = late - attendance  # 지각자 학번
+s_absent = set(student_list) - (attendance | s_late)  # 결석자 학번
+
 # -------------------------------------------------- #
