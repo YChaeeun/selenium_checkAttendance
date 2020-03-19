@@ -23,3 +23,23 @@ loginPassWord.send_keys(user.password)
 
 driver.find_element_by_xpath(site.btnLogin).click()
 # -------------------------------------------------- # 
+
+# -------------------------------------------------- #
+# 2. 게시물 올리기
+### 게시판 접근하기
+driver.find_elements_by_css_selector(".m-box2")[1].find_element_by_css_selector(".sub_open").click()
+driver.find_element_by_css_selector("#menu_open_material_16145").click()
+driver.find_element_by_css_selector(".site_button").click()
+
+### 글자 입력하기
+site.title = "3/19(목)"
+driver.find_element_by_css_selector(".txttype02").send_keys(site.title)
+
+frame = driver.find_element_by_tag_name("iframe")
+driver.switch_to.frame(frame)
+driver.find_element_by_css_selector("#tinymce").send_keys(site.content)
+
+### 작성완료!
+#driver.find_element_by_css_selector(".site_button_reverse").click()
+
+# -------------------------------------------------- #
