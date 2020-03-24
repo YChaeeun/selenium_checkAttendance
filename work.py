@@ -1,145 +1,155 @@
-import userInfo as u
-import siteInfo as s
-from student import student_list
+from userInfo import User 
+from siteInfo import Site 
+
+from student import student_dict
 
 from selenium import webdriver as wd
 
 from datetime import datetime
 import time
 
-user = u.User()  # 유저의 아이디와 비밀번호 정보
-site = s.Site()  # 접속하려는 사이트와 관련된 정보 (ex. url, css, class, id)
+driver = wd.Chrome("./tools/chromedriver.exe")  # 제어할 웹 브라우저 열기
+user = User()
+site = Site()
 
-# 제어할 웹 브라우저 열기
-driver = wd.Chrome("./tools/chromedriver.exe")
-driver.get(site.url)
+class Work :
+    def __init__(self):
+        driver.get(site.url)
+        
+    # 로그인 하기
+    def login(self) :
+        loginId = driver.find_element_by_id(site.put_id)
+        loginId.clear()
+        loginId.send_keys(user.id)
 
-# -------------------------------------------------- # 
-# 1. 로그인 하기
-loginId = driver.find_element_by_id(site.put_id)
-loginId.clear()
-loginId.send_keys(user.id)
+        loginPassWord = driver.find_element_by_id(site.put_password)
+        loginPassWord.clear()
+        loginPassWord.send_keys(user.password)
 
-loginPassWord = driver.find_element_by_id(site.put_password)
-loginPassWord.clear()
-loginPassWord.send_keys(user.password)
+        driver.find_element_by_xpath(site.btnLogin).click()
+        
+        return
 
-driver.find_element_by_xpath(site.btnLogin).click()
-# -------------------------------------------------- # 
 
-# -------------------------------------------------- #
-# 2. 게시물 올리기
-### 게시판 접근하기
-driver.find_elements_by_css_selector(".m-box2")[1].find_element_by_css_selector(".sub_open").click()
-driver.find_element_by_css_selector("#menu_open_material_16145").click()
-driver.find_element_by_css_selector(".site_button").click()
+    # 메인->게시판 접근하기
+    def moveMainToBoard(self) :
+        driver.find_elements_by_css_selector(".m-box2")[1].find_element_by_css_selector(".sub_open").click()
+        driver.find_element_by_css_selector("#menu_open_material_16145").click()
 
-### 글자 입력하기
-now = datetime.now()
-weekday = ["월", "화", "수", "목", "금", "토", "일"]
+        return
 
-name_of_day = weekday[now.weekday()]
-site.title = f"{now.month}/{now.day}({name_of_day})"   # ex. 3/19(목)
-driver.find_element_by_css_selector(".txttype02").send_keys(site.title)
+    # 현재 날짜 정보 가져오기
+    def setTodayMonthDayName(self) :
+        now = datetime.now()
+        weekday = ["월", "화", "수", "목", "금", "토", "일"]
 
-frame = driver.find_element_by_tag_name("iframe")
-driver.switch_to.frame(frame)
-driver.find_element_by_css_selector("#tinymce").send_keys(site.content)
+        name_of_day = weekday[now.weekday()]
+        site.title =  f"{now.month}/{now.day}({name_of_day})"
+        site.title_complete =  f"{now.month}/{now.day}({name_of_day})"
 
-### 작성완료!
-#driver.find_element_by_css_selector(".site_button_reverse").click()
+        return
 
-# -------------------------------------------------- #
 
-# -------------------------------------------------- #
-# 3. 댓글 크롤링
-driver.execute_script("window.history.go(-1)")
+    # 게시물 생성하기
+    def createCheckPost(self):
+        try :
+            driver.find_element_by_css_selector(".site_button").click()
+        except:
+            driver.get(site.board_url)
 
-### 가장 최근에 작성한 <출결체크> 게시글 접근
-title = driver.find_elements_by_css_selector(".bbslist tbody .left a")
-length = len(driver.find_elements_by_css_selector(".bbslist tbody"))
+        # title
+        driver.find_element_by_css_selector(".txttype02").clear()
+        driver.find_element_by_css_selector(".txttype02").send_keys(site.title)
 
-for i in range(length):
-    if ("<" in title[i].text) :
-        title[i].click()
-        break
+        # content
+        frame = driver.find_element_by_tag_name("iframe")
+        driver.switch_to.frame(frame)
+        driver.find_element_by_css_selector("#tinymce").clear()
+        driver.find_element_by_css_selector("#tinymce").send_keys(site.content)
+        
+        #complete
+        #driver.find_element_by_css_selector(".site_button_reverse").click()
 
-### 16시 31분이 되면 전체 댓글 수집 (출석)
-while True :
-    now = datetime.now()
-    if (now.hour == 16) and (now.minute >= 30) :
+        return
+
+    ### 가장 최근에 작성한 <출결체크> 게시글 접근
+    def moveBoardToNewCheckPost(self):
+        try :
+            title = driver.find_elements_by_css_selector(".bbslist tbody .left a")
+            length = len(driver.find_elements_by_css_selector(".bbslist tbody"))
+        except :
+            driver.get(site.board_url)
+            title = driver.find_elements_by_css_selector(".bbslist tbody .left a")
+            length = len(driver.find_elements_by_css_selector(".bbslist tbody"))
+
+        for i in range(length):
+            if ("<" in title[i].text) :
+                title[i].click()
+                break
+        
+        return
+
+    # 댓글 크롤링
+    def crawlComments(self) :
         comment_list = driver.find_elements_by_css_selector(".commentbox .comment-list .comment-name")
-        break
-    else :
-        driver.refresh()
-        time.sleep(60)
+        return comment_list
 
-### 지각
-for i in range(20) :
-    now = datetime.now()
-    if (now.hour == 16) and (now.minute >= 45) :
-        comment_list_late = driver.find_elements_by_css_selector(".commentbox .comment-list .comment-name")
-        break
-    else :
-        driver.refresh()
-        time.sleep(60)
-# -------------------------------------------------- #
+    '''
+    def crawlComments(self, hour, minuteLimit):
+        while True :
+            now = datetime.now()
+            if (now.hour == hour) and (now.minute >= minuteLimit) :
+                comment_list = driver.find_elements_by_css_selector(".commentbox .comment-list .comment-name")
+                break
+            else :
+                driver.refresh()
+                time.sleep(60)
 
-# -------------------------------------------------- #
-# 3-2. 데이터 정제
-attendance = set()
-late = set()
+        return comment_list
+    '''
 
-### 댓글 중 학번만 추출
-for comment in comment_list :
-    attendance.add(comment.text[5:13])
+    # 댓글에서 학번만 추출
+    def returnStudentId(self, comment_list) :
+        result = set()
+        for comment in comment_list :
+            result.add(comment.text[5:13])
 
-for comment in comment_list_late :
-    late.add(comment.text[5:13])
+        return result
 
-### 지각자, 결석자
-s_late = late - attendance  # 지각자 학번
-s_absent = set(student_list) - (attendance | s_late)  # 결석자 학번
+    # 지각자 결석자 
+    def returnResultString(self, s_status):
+        result = ""
+        s_status.sort()
 
-# -------------------------------------------------- #
+        for s_id in s_status :
+            student = f"{s_id} {student_dict[s_id]} / "
+            result += student
 
-# -------------------------------------------------- #
-# 5. 결과 게시물 작성
-driver.execute_script("window.history.go(-1)")
-driver.implicitly_wait(3)
-driver.find_element_by_css_selector(".site_button").click()
+        return "해당자 없음" if not result else result[:-2]
 
-### 제목 입력  ex. 3/19(목)
-now = datetime.now()
+    def setResultString(self, late, absent) :
+        site.content_complete = (late,absent)
+        return
 
-name_of_day = weekday[now.weekday()]
-site.title_complete = f"{now.month}/{now.day}({name_of_day})" 
-driver.find_element_by_css_selector(".txttype02").send_keys(site.title_complete)
+    def createCompletePost(self):
+        try :
+            driver.find_element_by_css_selector(".site_button").click()
+        except:
+            driver.get(site.board_url)
 
-### 내용 입력 ex. 지각 - 2222 가다나 \n결석 - 해당자 없음
-late_string = ""
-absent_string = ""
+        print("??", site.title_complete, site.content_complete)
 
-for s_id in s_late :
-    student = f"{s_id} {student_list[s_id]}"
-    late_string += student
+        # title
+        driver.find_element_by_css_selector(".txttype02").clear()
+        driver.find_element_by_css_selector(".txttype02").send_keys(site.title_complete)
 
-for s_id in s_absent :
-    student = f"{s_id} {student_list[s_id]}"
-    absent_string += student
+        # content
+        frame = driver.find_element_by_tag_name("iframe")
+        driver.switch_to.frame(frame)
+        driver.find_element_by_css_selector("#tinymce").clear()
+        driver.find_element_by_css_selector("#tinymce").send_keys(site.content_complete)
 
-if not late_string :
-    late_string = "해당자 없음"
-if not absent_string :
-    absent_string = "해당자 없음"
+        #complete
+        #driver.find_element_by_css_selector(".site_button_reverse").click()
 
-site.content_complete = (late_string, absent_string)
-
-frame = driver.find_element_by_tag_name("iframe")
-driver.switch_to.frame(frame)
-driver.find_element_by_css_selector("#tinymce").send_keys(site.content_complete)
-
-### 작성완료!
-#driver.find_element_by_css_selector(".site_button_reverse").click()
-
-# -------------------------------------------------- #
+        return
