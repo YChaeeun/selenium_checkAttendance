@@ -52,10 +52,12 @@ class Work :
 
     # 게시물 생성하기
     def createCheckPost(self):
-        try :
-            driver.find_element_by_css_selector(".site_button").click()
-        except:
+        button = driver.find_element_by_css_selector(".site_button")
+        if (button.text == "글쓰기") :
+            button.click()
+        else :
             driver.get(site.board_url)
+            driver.find_element_by_css_selector(".site_button").click()
 
         # title
         driver.find_element_by_css_selector(".txttype02").clear()
@@ -94,20 +96,6 @@ class Work :
         comment_list = driver.find_elements_by_css_selector(".commentbox .comment-list .comment-name")
         return comment_list
 
-    '''
-    def crawlComments(self, hour, minuteLimit):
-        while True :
-            now = datetime.now()
-            if (now.hour == hour) and (now.minute >= minuteLimit) :
-                comment_list = driver.find_elements_by_css_selector(".commentbox .comment-list .comment-name")
-                break
-            else :
-                driver.refresh()
-                time.sleep(60)
-
-        return comment_list
-    '''
-
     # 댓글에서 학번만 추출
     def returnStudentId(self, comment_list) :
         result = set()
@@ -132,10 +120,14 @@ class Work :
         return
 
     def createCompletePost(self):
-        try :
-            driver.find_element_by_css_selector(".site_button").click()
-        except:
+        driver.back()
+        button = driver.find_element_by_css_selector(".site_button")
+        if (button.text == "글쓰기") :
+            button.click()
+        else :
             driver.get(site.board_url)
+            driver.find_element_by_css_selector(".site_button").click()
+
 
         print("??", site.title_complete, site.content_complete)
 
@@ -153,3 +145,9 @@ class Work :
         #driver.find_element_by_css_selector(".site_button_reverse").click()
 
         return
+
+    def back(self):
+        driver.back()
+
+    def forward(self):
+        driver.forward()
