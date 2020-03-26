@@ -70,7 +70,8 @@ class Work :
         driver.find_element_by_css_selector("#tinymce").send_keys(site.content)
         
         #complete
-        #driver.find_element_by_css_selector(".site_button_reverse").click()
+        time.sleep(5)
+        driver.find_element_by_css_selector(".site_button_reverse").click()
 
         return
 
@@ -142,7 +143,8 @@ class Work :
         driver.find_element_by_css_selector("#tinymce").send_keys(site.content_complete)
 
         #complete
-        #driver.find_element_by_css_selector(".site_button_reverse").click()
+        time.sleep(5)
+        driver.find_element_by_css_selector(".site_button_reverse").click()
 
         return
 
