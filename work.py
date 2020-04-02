@@ -4,13 +4,22 @@ from siteInfo import Site
 from student import student_dict
 
 from selenium import webdriver as wd
+import sys, os
 
 from datetime import datetime
 import time
 
-driver = wd.Chrome("./tools/chromedriver.exe")  # 제어할 웹 브라우저 열기
+def resource_path(relative_path) :
+    try :
+        base_path = sys._MEIPASS
+    except Exception :
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
+
+driver = wd.Chrome(resource_path("./tools/chromedriver.exe"))  # 제어할 웹 브라우저 열기
 user = User()
 site = Site()
+
 
 class Work :
     def __init__(self):
@@ -40,18 +49,20 @@ class Work :
 
     # 현재 날짜 정보 가져오기
     def setTodayMonthDayName(self) :
+        site.content = "4:30 - 4:45"
+
         now = datetime.now()
         weekday = ["월", "화", "수", "목", "금", "토", "일"]
 
         name_of_day = weekday[now.weekday()]
-        site.title =  f"{now.month}/{now.day}({name_of_day})"
+        site.title =  (f"{now.month}/{now.day}({name_of_day})", "4:30 - 5:45")
         site.title_complete =  f"{now.month}/{now.day}({name_of_day})"
 
         return
 
 
-    # 게시물 생성하기
-    def createCheckPost(self):
+    # 출석 게시물 생성하기
+    def createCheckPost(self, autoUpload):
         button = driver.find_element_by_css_selector(".site_button")
         if (button.text == "글쓰기") :
             button.click()
@@ -70,8 +81,9 @@ class Work :
         driver.find_element_by_css_selector("#tinymce").send_keys(site.content)
         
         #complete
-        time.sleep(5)
-        driver.find_element_by_css_selector(".site_button_reverse").click()
+        if autoUpload :
+            time.sleep(2)
+            driver.find_element_by_css_selector(".site_button_reverse").click()
 
         return
 
@@ -120,7 +132,7 @@ class Work :
         site.content_complete = (late,absent)
         return
 
-    def createCompletePost(self):
+    def createCompletePost(self, autoUpload):
         driver.back()
         button = driver.find_element_by_css_selector(".site_button")
         if (button.text == "글쓰기") :
@@ -130,7 +142,7 @@ class Work :
             driver.find_element_by_css_selector(".site_button").click()
 
 
-        print("??", site.title_complete, site.content_complete)
+        print("결과\n", site.title_complete, site.content_complete)
 
         # title
         driver.find_element_by_css_selector(".txttype02").clear()
@@ -143,8 +155,9 @@ class Work :
         driver.find_element_by_css_selector("#tinymce").send_keys(site.content_complete)
 
         #complete
-        time.sleep(5)
-        driver.find_element_by_css_selector(".site_button_reverse").click()
+        if autoUpload :
+            time.sleep(2)
+            driver.find_element_by_css_selector(".site_button_reverse").click()
 
         return
 

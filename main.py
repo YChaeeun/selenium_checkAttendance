@@ -2,7 +2,6 @@ from work import Work
 from student import student_dict
 
 
-
 def main() :
 
     # flag
@@ -12,6 +11,9 @@ def main() :
     attendanceCrawlFlag = False
     lateCrawlFalg = False
     calculationCompleteFlag = False
+
+    # 자동 로그인 여부 설정
+    autoUpload = False
     
     w = Work()
 
@@ -38,7 +40,7 @@ def main() :
         elif key == 2 :
             # 출석체크 게시물 작성하기
             if loginFlag :
-                w.createCheckPost()
+                w.createCheckPost(autoUpload)
                 attendancePostFlag = True
             else :
                 print("로그인을 먼저 해주세요")
@@ -95,9 +97,9 @@ def main() :
         elif key == 7 :
             # 결과 게시물 작성
             if calculationCompleteFlag :
-                w.createCompletePost()
+                w.createCompletePost(autoUpload)
                 
-                end = input("모든 작업을 완료했습니다. 프로그램을 종료할까요? (y/n)")
+                end = input("모든 작업을 완료했습니다. 프로그램을 종료할까요? (y/n) ")
                 if end in "yYyesYesYES" :
                     break
                 else :
@@ -118,4 +120,9 @@ def main() :
             continue
     
 if __name__ == "__main__" :
-    main()
+    try :
+        main()
+    except :
+        import traceback
+        traceback.print_exc()
+        input("Program crashed; press Enter to exit")
